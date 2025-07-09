@@ -52,8 +52,14 @@
             const resp = await w.provider.connect();
             const publicKey = resp.publicKey.toString();
             document.getElementById('info').innerText = `Connected: ${publicKey}`;
-            // You can add logic here to send the address back to your extension if needed
-            setTimeout(() => { window.close(); }, 1200);
+            // Send the address to your extension!
+            chrome.runtime.sendMessage('dhigaghbjfhgfleokmfaefmneomjnnli', {
+              action: 'wallet_connected',
+              address: publicKey,
+              wallet: w.name
+            }, function(response) {
+              window.close();
+            });
           } catch (e) {
             document.getElementById('info').innerText = 'Connection failed.';
             btn.disabled = false;
