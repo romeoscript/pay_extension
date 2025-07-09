@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Connect Solana Wallet</title>
+  <style>
+    body { font-family: sans-serif; background: #140E24; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+    .wallet-btn { margin: 8px 0; padding: 12px 24px; border-radius: 8px; border: none; background: #36F181; color: #140E24; font-size: 16px; font-weight: bold; cursor: pointer; }
+    .wallet-btn:disabled { opacity: 0.5; }
+    .info { margin-top: 24px; color: #FFD361; }
+  </style>
+</head>
+<body>
+  <h2>Connect your Solana Wallet</h2>
+  <div id="wallet-list"></div>
+  <div class="info" id="info"></div>
+  <script>
+    function getWallets() {
+      const wallets = [];
+      if (window.solana) {
+        wallets.push({
+          name: window.solana.walletName || (window.solana.isPhantom ? 'Phantom' : 'Unknown'),
+          provider: window.solana,
+        });
+      }
+      if (window.solflare) {
+        wallets.push({ name: 'Solflare', provider: window.solflare });
+      }
+      if (window.backpack) {
+        wallets.push({ name: 'Backpack', provider: window.backpack });
+      }
+      return wallets;
+    }
+
+    function showWallets() {
+      const wallets = getWallets();
+      const walletList = document.getElementById('wallet-list');
+      walletList.innerHTML = '';
+      if (wallets.length === 0) {
+        walletList.innerHTML = `<div>No Solana wallet found.<br>Install <a href='https://phantom.app/' target='_blank' style='color:#36F181;'>Phantom</a>, <a href='https://solflare.com/' target='_blank' style='color:#36F181;'>Solflare</a>, or <a href='https://backpack.app/' target='_blank' style='color:#36F181;'>Backpack</a>.</div>`;
+        return;
+      }
+      wallets.forEach(w => {
+        const btn = document.createElement('button');
+        btn.className = 'wallet-btn';
+        btn.innerText = `Connect with ${w.name}`;
+        btn.onclick = async () => {
+          btn.disabled = true;
+          document.getElementById('info').innerText = 'Connecting...';
+          try {
+            const resp = await w.provider.connect();
+            const publicKey = resp.publicKey.toString();
+            document.getElementById('info').innerText = `Connected: ${publicKey}`;
+            // You can add logic here to send the address back to your extension if needed
+            setTimeout(() => { window.close(); }, 1200);
+          } catch (e) {
+            document.getElementById('info').innerText = 'Connection failed.';
+            btn.disabled = false;
+          }
+        };
+        walletList.appendChild(btn);
+      });
+    }
+    showWallets();
+  </script>
+</body>
+</html>
